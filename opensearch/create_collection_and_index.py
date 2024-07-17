@@ -201,7 +201,8 @@ def index_data(host):
                         "dimension": 3,
                         "method": {"engine": "faiss", "name": "hnsw"},
                     },
-                    # TODO: do we need id?
+                    # TODO: do we need id? AWS generates its own _id, check how to use
+                    # that
                     "id": {"type": "text"},
                     "project_uuid": {"type": "text"},
                     "filename": {"type": "text"},

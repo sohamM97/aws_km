@@ -1,4 +1,3 @@
-import time
 from uuid import uuid4
 
 import boto3
@@ -36,8 +35,6 @@ opensearch_client = OpenSearch(
     connection_class=RequestsHttpConnection,
     timeout=300,
 )
-# It can take up to a minute for data access rules to be enforced
-time.sleep(45)
 
 with open(FILE_NAME) as f:
     content = f.read()

@@ -34,4 +34,8 @@ def upload_file(file_name, bucket, object_name=None):
 
 
 if __name__ == "__main__":
-    upload_file(file_name="hello.txt", bucket="soham-boto-s3-test")
+    upload_file(
+        file_name="hello.txt",
+        bucket="soham-boto-s3-test",
+        object_name="testdir/hello.txt",
+    )

@@ -21,20 +21,26 @@ awsauth = AWS4Auth(
     session_token=credentials.token,
 )
 
+COLLECTION_NAME = "documents"
+INDEX_NAME = "documents"
+ENCRYPTION_POLICY_NAME = "documents-policy"
+NETWORK_POLICY_NAME = "documents-policy"
+ACCESS_POLICY_NAME = "documents-policy"
+
 
 def create_encryption_policy(client):
     """Creates an encryption policy that matches all collections beginning with tv-"""
     try:
         response = client.create_security_policy(
             description="Encryption policy for TV collections",
-            name="tv-policy",
+            name=ENCRYPTION_POLICY_NAME,
             policy="""
                 {
                     \"Rules\":[
                         {
                             \"ResourceType\":\"collection\",
                             \"Resource\":[
-                                \"collection\/tv-*\"
+                                \"collection\/documents*\"
                             ]
                         }
                     ],
@@ -59,18 +65,18 @@ def create_network_policy(client):
     try:
         response = client.create_security_policy(
             description="Network policy for TV collections",
-            name="tv-policy",
+            name=NETWORK_POLICY_NAME,
             policy="""
                 [{
                     \"Description\":\"Public access for TV collection\",
                     \"Rules\":[
                         {
                             \"ResourceType\":\"dashboard\",
-                            \"Resource\":[\"collection\/tv-*\"]
+                            \"Resource\":[\"collection\/documents*\"]
                         },
                         {
                             \"ResourceType\":\"collection\",
-                            \"Resource\":[\"collection\/tv-*\"]
+                            \"Resource\":[\"collection\/documents*\"]
                         }
                     ],
                     \"AllowFromPublic\":true
@@ -92,14 +98,14 @@ def create_access_policy(client):
     try:
         response = client.create_access_policy(
             description="Data access policy for TV collections",
-            name="tv-policy",
+            name=ACCESS_POLICY_NAME,
             # TODO: principal name is hardcoded
             policy="""
                 [{
                     \"Rules\":[
                         {
                             \"Resource\":[
-                                \"index\/tv-*\/*\"
+                                \"index\/documents*\/*\"
                             ],
                             \"Permission\":[
                                 \"aoss:CreateIndex\",
@@ -113,7 +119,7 @@ def create_access_policy(client):
                         },
                         {
                             \"Resource\":[
-                                \"collection\/tv-*\"
+                                \"collection\/documents*\"
                             ],
                             \"Permission\":[
                                 \"aoss:CreateCollectionItems\"
@@ -140,7 +146,7 @@ def create_access_policy(client):
 def create_collection(client):
     """Creates a collection"""
     try:
-        response = client.create_collection(name="tv-sitcoms", type="SEARCH")
+        response = client.create_collection(name=COLLECTION_NAME, type="VECTORSEARCH")
         return response
     except botocore.exceptions.ClientError as error:
         if error.response["Error"]["Code"] == "ConflictException":
@@ -153,12 +159,12 @@ def create_collection(client):
 
 def wait_for_collection_creation(client):
     """Waits for the collection to become active"""
-    response = client.batch_get_collection(names=["tv-sitcoms"])
+    response = client.batch_get_collection(names=[COLLECTION_NAME])
     # Periodically check collection status
     while (response["collectionDetails"][0]["status"]) == "CREATING":
         print("Creating collection...")
         time.sleep(30)
-        response = client.batch_get_collection(names=["tv-sitcoms"])
+        response = client.batch_get_collection(names=[COLLECTION_NAME])
     print("\nCollection successfully created:")
     print(response["collectionDetails"])
     # Extract the collection endpoint from the response
@@ -182,18 +188,40 @@ def index_data(host):
     time.sleep(45)
 
     # Create index
-    response = client.indices.create("sitcoms-eighties")
+    response = client.indices.create(
+        index=INDEX_NAME,
+        body={
+            "settings": {"index.knn": True},
+            "mappings": {
+                "properties": {
+                    "embedding": {
+                        "type": "knn_vector",
+                        "dimension": 1536,
+                        "method": {"engine": "faiss", "name": "hnsw"},
+                    },
+                    "id": {"type": "text"},
+                    "project_uuid": {"type": "text"},
+                    "filename": {"type": "text"},
+                    "content": {"type": "text"},
+                    "sourcepage": {"type": "text"},
+                    "sourcefilepath": {"type": "text"},
+                    "language": {"type": "text"},
+                    "tags": {"type": "long"},
+                }
+            },
+        },
+    )
     print("\nCreating index:")
     print(response)
 
-    # Add a document to the index.
-    response = client.index(
-        index="sitcoms-eighties",
-        body={"title": "Seinfeld", "creator": "Larry David", "year": 1989},
-        id="1",
-    )
-    print("\nDocument added:")
-    print(response)
+    # # Add a document to the index.
+    # response = client.index(
+    #     index="sitcoms-eighties",
+    #     body={"title": "Seinfeld", "creator": "Larry David", "year": 1989},
+    #     id="1",
+    # )
+    # print("\nDocument added:")
+    # print(response)
 
 
 def main():

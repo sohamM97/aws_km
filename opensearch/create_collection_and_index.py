@@ -2,6 +2,13 @@ import time
 
 import boto3
 import botocore
+from constants import (
+    ACCESS_POLICY_NAME,
+    COLLECTION_NAME,
+    ENCRYPTION_POLICY_NAME,
+    INDEX_NAME,
+    NETWORK_POLICY_NAME,
+)
 from opensearchpy import OpenSearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 
@@ -20,12 +27,6 @@ awsauth = AWS4Auth(
     service,
     session_token=credentials.token,
 )
-
-COLLECTION_NAME = "documents"
-INDEX_NAME = "documents"
-ENCRYPTION_POLICY_NAME = "documents-policy"
-NETWORK_POLICY_NAME = "documents-policy"
-ACCESS_POLICY_NAME = "documents-policy"
 
 
 def create_encryption_policy(client):
@@ -196,9 +197,11 @@ def index_data(host):
                 "properties": {
                     "embedding": {
                         "type": "knn_vector",
-                        "dimension": 1536,
+                        # TODO: Change to 1536
+                        "dimension": 3,
                         "method": {"engine": "faiss", "name": "hnsw"},
                     },
+                    # TODO: do we need id?
                     "id": {"type": "text"},
                     "project_uuid": {"type": "text"},
                     "filename": {"type": "text"},

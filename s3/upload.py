@@ -1,11 +1,14 @@
 import logging
 import os
+from typing import Optional
 
 import boto3
 from botocore.exceptions import ClientError
 
+BUCKET_NAME = "soham-boto-s3-test"
 
-def upload_file(file_name, bucket, object_name=None):
+
+def upload_file(file_name: str, bucket: str, object_name: Optional[str] = None):
     """Upload a file to an S3 bucket
 
     :param file_name: File to upload
@@ -37,7 +40,7 @@ def upload_file(file_name, bucket, object_name=None):
 if __name__ == "__main__":
     file_url = upload_file(
         file_name="hello.txt",
-        bucket="soham-boto-s3-test",
+        bucket=BUCKET_NAME,
         object_name="testdir/hello.txt",
     )
 

@@ -29,13 +29,19 @@ def upload_file(file_name, bucket, object_name=None):
         )
     except ClientError as e:
         logging.error(e)
-        return False
-    return True
+        return None
+
+    return f"https://{bucket}.s3.amazonaws.com/{object_name}"
 
 
 if __name__ == "__main__":
-    upload_file(
+    file_url = upload_file(
         file_name="hello.txt",
         bucket="soham-boto-s3-test",
         object_name="testdir/hello.txt",
     )
+
+    if file_url:
+        print(f"File uploaded at {file_url}")
+    else:
+        print("Unable to upload file!")

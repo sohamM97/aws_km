@@ -37,6 +37,15 @@ def create_bucket(bucket_name, region=None):
             },
         )
 
+        s3_client.put_bucket_ownership_controls(
+            Bucket=bucket_name,
+            OwnershipControls={
+                "Rules": [
+                    {"ObjectOwnership": "BucketOwnerPreferred"}  # or 'ObjectWriter'
+                ]
+            },
+        )
+
     except ClientError as e:
         logging.error(e)
         return False
@@ -44,8 +53,7 @@ def create_bucket(bucket_name, region=None):
 
 
 if __name__ == "__main__":
-    # TODO: disable bucket owner enforced
-    if create_bucket("soham-boto-s3-test-1"):
+    if create_bucket("soham-boto-s3-test"):
         print("Bucket created!")
     else:
         print("Error creating bucket!")

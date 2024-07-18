@@ -30,7 +30,15 @@ opensearch_client = OpenSearch(
 # Search for the document.
 q = "consumer disclosure"
 query = {
-    "query": {"multi_match": {"query": q, "fields": ["content"]}},
+    "query": {
+        "bool": {
+            "must": [
+                {"knn": {"embedding": {"vector": [1, 2, 3], "k": 50}}},
+                {"multi_match": {"query": q, "fields": ["content"]}},
+            ],
+            "filter": [{"terms": {"tags": [1, 2]}}],
+        }
+    },
 }
 
 response = opensearch_client.search(body=query, index=INDEX_NAME)

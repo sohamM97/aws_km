@@ -7,7 +7,7 @@ from pypdf import PdfReader
 from requests_aws4auth import AWS4Auth
 from upload import BUCKET_NAME, upload_file
 
-FILE_NAME = "11-backgroundchecks disclosure form.pdf"
+FILE_NAME = "msdhoni.pdf"
 
 
 s3_url = upload_file(file_name=FILE_NAME, bucket=BUCKET_NAME)

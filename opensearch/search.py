@@ -28,7 +28,7 @@ opensearch_client = OpenSearch(
 )
 
 # Search for the document.
-q = "consumer disclosure"
+q = "dhoni"
 query = {
     "query": {
         "bool": {

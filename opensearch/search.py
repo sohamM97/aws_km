@@ -28,7 +28,7 @@ opensearch_client = OpenSearch(
 )
 
 # Search for the document.
-q = "hello"
+q = "consumer disclosure"
 query = {
     "query": {"multi_match": {"query": q, "fields": ["content"]}},
 }

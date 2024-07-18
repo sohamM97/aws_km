@@ -2,3 +2,4 @@ opensearch-py
 boto3
 botocore
 requests-aws4auth
+pypdf

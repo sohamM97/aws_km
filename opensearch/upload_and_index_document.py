@@ -3,10 +3,11 @@ from uuid import uuid4
 import boto3
 from constants import COLLECTION_NAME, INDEX_NAME
 from opensearchpy import OpenSearch, RequestsHttpConnection
+from pypdf import PdfReader
 from requests_aws4auth import AWS4Auth
 from upload import BUCKET_NAME, upload_file
 
-FILE_NAME = "hello.txt"
+FILE_NAME = "11-backgroundchecks disclosure form.pdf"
 
 
 s3_url = upload_file(file_name=FILE_NAME, bucket=BUCKET_NAME)
@@ -36,13 +37,20 @@ opensearch_client = OpenSearch(
     timeout=300,
 )
 
-with open(FILE_NAME) as f:
-    content = f.read()
+if FILE_NAME.endswith(".pdf"):
+    content = ""
+    reader = PdfReader(FILE_NAME)
+    for i in range(len(reader.pages)):
+        page = reader.pages[i]
+        content += page.extract_text()
+else:
+    with open(FILE_NAME) as f:
+        content = f.read()
 
 response = opensearch_client.index(
     index=INDEX_NAME,
     body={
-        "id": "Kuch bhi",
+        "id": uuid4(),
         "project_uuid": uuid4(),
         "filename": FILE_NAME,
         "content": content,

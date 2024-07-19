@@ -1,3 +1,4 @@
+import json
 import time
 
 import boto3
@@ -35,19 +36,17 @@ def create_encryption_policy(client):
         response = client.create_security_policy(
             description="Encryption policy for TV collections",
             name=ENCRYPTION_POLICY_NAME,
-            policy="""
+            policy=json.dumps(
                 {
-                    \"Rules\":[
+                    "Rules": [
                         {
-                            \"ResourceType\":\"collection\",
-                            \"Resource\":[
-                                \"collection\/documents*\"
-                            ]
+                            "ResourceType": "collection",
+                            "Resource": [f"collection/{COLLECTION_NAME}*"],
                         }
                     ],
-                    \"AWSOwnedKey\":true
+                    "AWSOwnedKey": True,
                 }
-                """,
+            ),
             type="encryption",
         )
         print("\nEncryption policy created:")
@@ -67,22 +66,24 @@ def create_network_policy(client):
         response = client.create_security_policy(
             description="Network policy for TV collections",
             name=NETWORK_POLICY_NAME,
-            policy="""
-                [{
-                    \"Description\":\"Public access for TV collection\",
-                    \"Rules\":[
-                        {
-                            \"ResourceType\":\"dashboard\",
-                            \"Resource\":[\"collection\/documents*\"]
-                        },
-                        {
-                            \"ResourceType\":\"collection\",
-                            \"Resource\":[\"collection\/documents*\"]
-                        }
-                    ],
-                    \"AllowFromPublic\":true
-                }]
-                """,
+            policy=json.dumps(
+                [
+                    {
+                        "Description": "Public access for TV collection",
+                        "Rules": [
+                            {
+                                "ResourceType": "dashboard",
+                                "Resource": [f"collection/{COLLECTION_NAME}*"],
+                            },
+                            {
+                                "ResourceType": "collection",
+                                "Resource": [f"collection/{COLLECTION_NAME}*"],
+                            },
+                        ],
+                        "AllowFromPublic": True,
+                    }
+                ]
+            ),
             type="network",
         )
         print("\nNetwork policy created:")
@@ -101,38 +102,32 @@ def create_access_policy(client):
             description="Data access policy for TV collections",
             name=ACCESS_POLICY_NAME,
             # TODO: principal name is hardcoded
-            policy="""
-                [{
-                    \"Rules\":[
-                        {
-                            \"Resource\":[
-                                \"index\/documents*\/*\"
-                            ],
-                            \"Permission\":[
-                                \"aoss:CreateIndex\",
-                                \"aoss:DeleteIndex\",
-                                \"aoss:UpdateIndex\",
-                                \"aoss:DescribeIndex\",
-                                \"aoss:ReadDocument\",
-                                \"aoss:WriteDocument\"
-                            ],
-                            \"ResourceType\": \"index\"
-                        },
-                        {
-                            \"Resource\":[
-                                \"collection\/documents*\"
-                            ],
-                            \"Permission\":[
-                                \"aoss:CreateCollectionItems\"
-                            ],
-                            \"ResourceType\": \"collection\"
-                        }
-                    ],
-                    \"Principal\":[
-                        \"arn:aws:iam::514857968326:user\/dash\"
-                    ]
-                }]
-                """,
+            policy=json.dumps(
+                [
+                    {
+                        "Rules": [
+                            {
+                                "Resource": [f"index/{INDEX_NAME}*/*"],
+                                "Permission": [
+                                    "aoss:CreateIndex",
+                                    "aoss:DeleteIndex",
+                                    "aoss:UpdateIndex",
+                                    "aoss:DescribeIndex",
+                                    "aoss:ReadDocument",
+                                    "aoss:WriteDocument",
+                                ],
+                                "ResourceType": "index",
+                            },
+                            {
+                                "Resource": [f"collection/{COLLECTION_NAME}*"],
+                                "Permission": ["aoss:CreateCollectionItems"],
+                                "ResourceType": "collection",
+                            },
+                        ],
+                        "Principal": ["arn:aws:iam::514857968326:user/dash"],
+                    }
+                ]
+            ),
             type="data",
         )
         print("\nAccess policy created:")
@@ -217,15 +212,6 @@ def index_data(host):
     )
     print("\nCreating index:")
     print(response)
-
-    # # Add a document to the index.
-    # response = client.index(
-    #     index="sitcoms-eighties",
-    #     body={"title": "Seinfeld", "creator": "Larry David", "year": 1989},
-    #     id="1",
-    # )
-    # print("\nDocument added:")
-    # print(response)
 
 
 def main():

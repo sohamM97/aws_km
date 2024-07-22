@@ -1,4 +1,5 @@
 import json
+import os
 import time
 
 import boto3
@@ -10,8 +11,11 @@ from constants import (
     INDEX_NAME,
     NETWORK_POLICY_NAME,
 )
+from dotenv import load_dotenv
 from opensearchpy import OpenSearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
+
+load_dotenv()
 
 # Build the client using the default credential configuration.
 # You can use the CLI and run 'aws configure' to set access key, secret
@@ -20,13 +24,11 @@ from requests_aws4auth import AWS4Auth
 client = boto3.client("opensearchserverless")
 service = "aoss"
 region = "us-east-1"
-credentials = boto3.Session().get_credentials()
 awsauth = AWS4Auth(
-    credentials.access_key,
-    credentials.secret_key,
+    os.getenv("AWS_ACCESS_KEY"),
+    os.getenv("AWS_SECRET_KEY"),
     region,
     service,
-    session_token=credentials.token,
 )
 
 

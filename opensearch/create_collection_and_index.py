@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 
 import aioboto3
 import botocore
@@ -10,8 +11,11 @@ from constants import (
     INDEX_NAME,
     NETWORK_POLICY_NAME,
 )
+from dotenv import load_dotenv
 from opensearchpy import OpenSearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
+
+load_dotenv()
 
 # Build the client using the default credential configuration.
 # You can use the CLI and run 'aws configure' to set access key, secret
@@ -219,13 +223,11 @@ async def main():
     session = aioboto3.Session()
     service = "aoss"
     region = "us-east-1"
-    credentials = await session.get_credentials()
     awsauth = AWS4Auth(
-        credentials.access_key,
-        credentials.secret_key,
+        os.getenv("AWS_ACCESS_KEY"),
+        os.getenv("AWS_SECRET_KEY"),
         region,
         service,
-        security_token=credentials.token,
     )
 
     await create_encryption_policy(session)

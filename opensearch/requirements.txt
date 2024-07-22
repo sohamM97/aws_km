@@ -3,3 +3,4 @@ aioboto3
 botocore
 requests-aws4auth
 pypdf
+python-dotenv

@@ -194,7 +194,11 @@ def index_data(host):
                         "type": "knn_vector",
                         # TODO: Change to 1536
                         "dimension": 3,
-                        "method": {"engine": "faiss", "name": "hnsw"},
+                        "method": {
+                            "engine": "nmslib",
+                            "name": "hnsw",
+                            "space_type": "cosinesimil",
+                        },
                     },
                     # TODO: do we need id? AWS generates its own _id, check how to use
                     # that

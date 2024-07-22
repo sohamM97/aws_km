@@ -184,38 +184,41 @@ def index_data(host):
     time.sleep(45)
 
     # Create index
-    response = client.indices.create(
-        index=INDEX_NAME,
-        body={
-            "settings": {"index.knn": True},
-            "mappings": {
-                "properties": {
-                    "embedding": {
-                        "type": "knn_vector",
-                        # TODO: Change to 1536
-                        "dimension": 3,
-                        "method": {
-                            "engine": "nmslib",
-                            "name": "hnsw",
-                            "space_type": "cosinesimil",
+    if client.indices.exists(index=INDEX_NAME):
+        print(f"Index {INDEX_NAME} already exists!")
+    else:
+        response = client.indices.create(
+            index=INDEX_NAME,
+            body={
+                "settings": {"index.knn": True},
+                "mappings": {
+                    "properties": {
+                        "embedding": {
+                            "type": "knn_vector",
+                            # TODO: Change to 1536
+                            "dimension": 3,
+                            "method": {
+                                "engine": "nmslib",
+                                "name": "hnsw",
+                                "space_type": "cosinesimil",
+                            },
                         },
-                    },
-                    # TODO: do we need id? AWS generates its own _id, check how to use
-                    # that
-                    "id": {"type": "text"},
-                    "project_uuid": {"type": "text"},
-                    "filename": {"type": "text"},
-                    "content": {"type": "text"},
-                    "sourcepage": {"type": "text"},
-                    "sourcefilepath": {"type": "text"},
-                    "language": {"type": "text"},
-                    "tags": {"type": "long"},
-                }
+                        # TODO: do we need id? AWS generates its own _id, check how to use
+                        # that
+                        "id": {"type": "text"},
+                        "project_uuid": {"type": "text"},
+                        "filename": {"type": "text"},
+                        "content": {"type": "text"},
+                        "sourcepage": {"type": "text"},
+                        "sourcefilepath": {"type": "text"},
+                        "language": {"type": "text"},
+                        "tags": {"type": "long"},
+                    }
+                },
             },
-        },
-    )
-    print("\nCreating index:")
-    print(response)
+        )
+        print("\nCreating index:")
+        print(response)
 
 
 def main():

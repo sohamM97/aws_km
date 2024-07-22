@@ -5,6 +5,9 @@ import os
 import aioboto3
 import aioboto3.session
 from botocore.exceptions import ClientError
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 async def create_bucket(bucket_name, region=None):

@@ -12,8 +12,7 @@ from constants import (
     NETWORK_POLICY_NAME,
 )
 from dotenv import load_dotenv
-from opensearchpy import OpenSearch, RequestsHttpConnection
-from requests_aws4auth import AWS4Auth
+from opensearchpy import AsyncHttpConnection, AsyncOpenSearch, AWSV4SignerAsyncAuth
 
 load_dotenv()
 
@@ -171,22 +170,22 @@ async def wait_for_collection_creation(session, awsauth):
 async def index_data(host, awsauth):
     """Create an index and add some sample data"""
     # Build the OpenSearch client
-    client = OpenSearch(
+    client = AsyncOpenSearch(
         hosts=[{"host": host, "port": 443}],
         http_auth=awsauth,
         use_ssl=True,
         verify_certs=True,
-        connection_class=RequestsHttpConnection,
+        connection_class=AsyncHttpConnection,
         timeout=300,
     )
     # It can take up to a minute for data access rules to be enforced
-    await asyncio.sleep(45)
+    # await asyncio.sleep(45)
 
     # Create index
-    if client.indices.exists(index=INDEX_NAME):
+    if await client.indices.exists(index=INDEX_NAME):
         print(f"Index {INDEX_NAME} already exists!")
     else:
-        response = client.indices.create(
+        response = await client.indices.create(
             index=INDEX_NAME,
             body={
                 "settings": {"index.knn": True},
@@ -218,16 +217,22 @@ async def index_data(host, awsauth):
         print("\nCreating index:")
         print(response)
 
+    await client.close()
+
 
 async def main():
-    session = aioboto3.Session()
+    session = aioboto3.Session(
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
+    )
     service = "aoss"
     region = "us-east-1"
-    awsauth = AWS4Auth(
-        os.getenv("AWS_ACCESS_KEY"),
-        os.getenv("AWS_SECRET_KEY"),
-        region,
-        service,
+    credentials = await session.get_credentials()
+    credentials = await credentials.get_frozen_credentials()
+    awsauth = AWSV4SignerAsyncAuth(
+        credentials=credentials,
+        region=region,
+        service=service,
     )
 
     await create_encryption_policy(session)

@@ -176,7 +176,7 @@ async def index_data(host, awsauth):
         timeout=300,
     )
     # It can take up to a minute for data access rules to be enforced
-    # await asyncio.sleep(45)
+    await asyncio.sleep(45)
 
     # Create index
     if client.indices.exists(index=INDEX_NAME):

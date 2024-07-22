@@ -1,5 +1,5 @@
-opensearch-py
-boto3
+opensearch-py[async]
+aioboto3
 botocore
 requests-aws4auth
 pypdf

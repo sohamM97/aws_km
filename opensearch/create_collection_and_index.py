@@ -1,20 +1,18 @@
 import asyncio
 import json
-import os
 
 import aioboto3
 import botocore
 from constants import (
     ACCESS_POLICY_NAME,
+    AWS_ACCESS_KEY,
+    AWS_SECRET_KEY,
     COLLECTION_NAME,
     ENCRYPTION_POLICY_NAME,
     INDEX_NAME,
     NETWORK_POLICY_NAME,
 )
-from dotenv import load_dotenv
 from opensearchpy import AsyncHttpConnection, AsyncOpenSearch, AWSV4SignerAsyncAuth
-
-load_dotenv()
 
 # Build the client using the default credential configuration.
 # You can use the CLI and run 'aws configure' to set access key, secret
@@ -179,7 +177,7 @@ async def index_data(host, awsauth):
         timeout=300,
     )
     # It can take up to a minute for data access rules to be enforced
-    # await asyncio.sleep(45)
+    await asyncio.sleep(45)
 
     # Create index
     if await client.indices.exists(index=INDEX_NAME):
@@ -222,8 +220,8 @@ async def index_data(host, awsauth):
 
 async def main():
     session = aioboto3.Session(
-        aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
-        aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
+        aws_access_key_id=AWS_ACCESS_KEY,
+        aws_secret_access_key=AWS_SECRET_KEY,
     )
     service = "aoss"
     region = "us-east-1"

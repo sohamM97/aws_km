@@ -1,10 +1,16 @@
+import asyncio
 import logging
+import os
 
-import boto3
+import aioboto3
+import aioboto3.session
 from botocore.exceptions import ClientError
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
-def create_bucket(bucket_name, region=None):
+async def create_bucket(bucket_name, region=None):
     """Create an S3 bucket in a specified region
 
     If a region is not specified, the bucket is created in the S3 default
@@ -18,33 +24,45 @@ def create_bucket(bucket_name, region=None):
     # Create bucket
     try:
         if region is None:
-            s3_client = boto3.client("s3")
-            s3_client.create_bucket(Bucket=bucket_name)
+            s3_session = aioboto3.Session(
+                aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
+                aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
+            )
+            async with s3_session.client("s3") as s3_client:
+                await s3_client.create_bucket(Bucket=bucket_name)
+
         else:
-            s3_client = boto3.client("s3", region_name=region)
+            s3_client = aioboto3.Session(
+                "s3",
+                aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
+                aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
+                region_name=region,
+            )
             location = {"LocationConstraint": region}
-            s3_client.create_bucket(
-                Bucket=bucket_name, CreateBucketConfiguration=location
+            async with s3_session.client("s3") as s3_client:
+                await s3_client.create_bucket(
+                    Bucket=bucket_name, CreateBucketConfiguration=location
+                )
+
+        async with s3_session.client("s3") as s3_client:
+            await s3_client.put_public_access_block(
+                Bucket=bucket_name,
+                PublicAccessBlockConfiguration={
+                    "BlockPublicAcls": False,
+                    "IgnorePublicAcls": False,
+                    "BlockPublicPolicy": False,
+                    "RestrictPublicBuckets": False,
+                },
             )
 
-        s3_client.put_public_access_block(
-            Bucket=bucket_name,
-            PublicAccessBlockConfiguration={
-                "BlockPublicAcls": False,
-                "IgnorePublicAcls": False,
-                "BlockPublicPolicy": False,
-                "RestrictPublicBuckets": False,
-            },
-        )
-
-        s3_client.put_bucket_ownership_controls(
-            Bucket=bucket_name,
-            OwnershipControls={
-                "Rules": [
-                    {"ObjectOwnership": "BucketOwnerPreferred"}  # or 'ObjectWriter'
-                ]
-            },
-        )
+            await s3_client.put_bucket_ownership_controls(
+                Bucket=bucket_name,
+                OwnershipControls={
+                    "Rules": [
+                        {"ObjectOwnership": "BucketOwnerPreferred"}  # or 'ObjectWriter'
+                    ]
+                },
+            )
 
     except ClientError as e:
         logging.error(e)
@@ -52,16 +70,24 @@ def create_bucket(bucket_name, region=None):
     return True
 
 
-if __name__ == "__main__":
-    if create_bucket("soham-boto-s3-test"):
+async def main():
+    if await create_bucket("soham-boto-s3-async"):
         print("Bucket created!")
     else:
         print("Error creating bucket!")
 
-    s3 = boto3.client("s3")
-    response = s3.list_buckets()
+    session = aioboto3.Session(
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
+    )
+    async with session.client("s3") as s3:
+        response = await s3.list_buckets()
 
-    # Output the bucket names
-    print("Buckets:")
-    for bucket in response["Buckets"]:
-        print(f'  {bucket["Name"]}')
+        # Output the bucket names
+        print("Buckets:")
+        for bucket in response["Buckets"]:
+            print(f'  {bucket["Name"]}')
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

@@ -1,15 +1,10 @@
 import asyncio
 import logging
-import os
 
 import aioboto3
 import aioboto3.session
 from botocore.exceptions import ClientError
-from dotenv import load_dotenv
-
-load_dotenv()
-
-BUCKET_NAME = "soham-boto-s3-test"
+from constants import AWS_ACCESS_KEY, AWS_SECRET_KEY, BUCKET_NAME
 
 
 async def create_bucket(bucket_name, region=None):
@@ -27,8 +22,7 @@ async def create_bucket(bucket_name, region=None):
     try:
         if region is None:
             s3_session = aioboto3.Session(
-                aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
-                aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
+                aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY
             )
             async with s3_session.client("s3") as s3_client:
                 await s3_client.create_bucket(Bucket=bucket_name)
@@ -36,8 +30,8 @@ async def create_bucket(bucket_name, region=None):
         else:
             s3_client = aioboto3.Session(
                 "s3",
-                aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
-                aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
+                aws_access_key_id=AWS_ACCESS_KEY,
+                aws_secret_access_key=AWS_SECRET_KEY,
                 region_name=region,
             )
             location = {"LocationConstraint": region}
@@ -79,8 +73,7 @@ async def main():
         print("Error creating bucket!")
 
     session = aioboto3.Session(
-        aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
-        aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
+        aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY
     )
     async with session.client("s3") as s3:
         response = await s3.list_buckets()

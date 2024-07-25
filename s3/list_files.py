@@ -2,8 +2,7 @@ import asyncio
 import os
 
 import aioboto3
-
-BUCKET_NAME = "soham-boto-s3-test"
+from constants import BUCKET_NAME
 
 
 async def main():

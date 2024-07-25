@@ -1,7 +1,7 @@
 import asyncio
-import os
 
 import aioboto3
+from constants import AWS_ACCESS_KEY, AWS_SECRET_KEY, BUCKET_NAME
 
 
 async def get_chunks(blob, chunk_size):
@@ -14,14 +14,11 @@ async def get_chunks(blob, chunk_size):
 
 async def main():
     s3_client = aioboto3.Session(
-        aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
-        aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
+        aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY
     ).client("s3")
 
     async with s3_client as client:
-        response = await client.get_object(
-            Bucket="soham-boto-s3-test", Key="msdhoni.pdf"
-        )
+        response = await client.get_object(Bucket=BUCKET_NAME, Key="msdhoni.pdf")
         streaming_body = response["Body"]
         async for chunk in get_chunks(streaming_body, 1024):
             print(chunk)

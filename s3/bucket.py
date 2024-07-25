@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+BUCKET_NAME = "soham-boto-s3-test"
+
 
 async def create_bucket(bucket_name, region=None):
     """Create an S3 bucket in a specified region
@@ -71,7 +73,7 @@ async def create_bucket(bucket_name, region=None):
 
 
 async def main():
-    if await create_bucket("soham-boto-s3-async"):
+    if await create_bucket(BUCKET_NAME):
         print("Bucket created!")
     else:
         print("Error creating bucket!")

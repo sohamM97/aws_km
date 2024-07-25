@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BUCKET_NAME = "soham-boto-s3-async"
+BUCKET_NAME = "soham-boto-s3-test"
 
 
 async def upload_file(file_name: str, bucket: str, object_name: Optional[str] = None):
